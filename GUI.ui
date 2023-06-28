@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1121</width>
-    <height>860</height>
+    <width>1212</width>
+    <height>952</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -65,33 +65,33 @@
      <rect>
       <x>210</x>
       <y>20</y>
-      <width>131</width>
-      <height>16</height>
+      <width>161</width>
+      <height>20</height>
      </rect>
     </property>
     <property name="text">
-     <string>Control Unit Memory</string>
+     <string>Control Unit Memory input</string>
     </property>
    </widget>
    <widget class="QLabel" name="label_2">
     <property name="geometry">
      <rect>
-      <x>770</x>
+      <x>800</x>
       <y>20</y>
-      <width>111</width>
+      <width>131</width>
       <height>20</height>
      </rect>
     </property>
     <property name="text">
-     <string>Basic Memory</string>
+     <string>Basic Memory input</string>
     </property>
    </widget>
    <widget class="QTextBrowser" name="show_SBR">
     <property name="geometry">
      <rect>
-      <x>90</x>
-      <y>570</y>
-      <width>181</width>
+      <x>60</x>
+      <y>820</y>
+      <width>281</width>
       <height>31</height>
      </rect>
     </property>
@@ -99,9 +99,9 @@
    <widget class="QTextBrowser" name="show_CBR">
     <property name="geometry">
      <rect>
-      <x>90</x>
-      <y>620</y>
-      <width>181</width>
+      <x>60</x>
+      <y>870</y>
+      <width>281</width>
       <height>31</height>
      </rect>
     </property>
@@ -150,7 +150,7 @@
     <property name="geometry">
      <rect>
       <x>20</x>
-      <y>580</y>
+      <y>820</y>
       <width>55</width>
       <height>16</height>
      </rect>
@@ -163,7 +163,7 @@
     <property name="geometry">
      <rect>
       <x>20</x>
-      <y>630</y>
+      <y>870</y>
       <width>55</width>
       <height>16</height>
      </rect>
@@ -175,7 +175,7 @@
    <widget class="QLabel" name="label_5">
     <property name="geometry">
      <rect>
-      <x>550</x>
+      <x>590</x>
       <y>580</y>
       <width>55</width>
       <height>16</height>
@@ -188,7 +188,7 @@
    <widget class="QLabel" name="label_6">
     <property name="geometry">
      <rect>
-      <x>550</x>
+      <x>590</x>
       <y>640</y>
       <width>55</width>
       <height>16</height>
@@ -227,7 +227,7 @@
    <widget class="QPushButton" name="Run">
     <property name="geometry">
      <rect>
-      <x>570</x>
+      <x>580</x>
       <y>510</y>
       <width>93</width>
       <height>28</height>
@@ -270,13 +270,65 @@
      </widget>
     </widget>
    </widget>
+   <widget class="QScrollArea" name="scrollArea_3">
+    <property name="geometry">
+     <rect>
+      <x>60</x>
+      <y>600</y>
+      <width>281</width>
+      <height>201</height>
+     </rect>
+    </property>
+    <property name="widgetResizable">
+     <bool>true</bool>
+    </property>
+    <widget class="QWidget" name="scrollAreaWidgetContents_3">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>0</y>
+       <width>279</width>
+       <height>199</height>
+      </rect>
+     </property>
+     <widget class="QTableView" name="conterol_unit_tabl">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>301</width>
+        <height>201</height>
+       </rect>
+      </property>
+      <attribute name="horizontalHeaderCascadingSectionResizes">
+       <bool>true</bool>
+      </attribute>
+      <attribute name="horizontalHeaderDefaultSectionSize">
+       <number>200</number>
+      </attribute>
+     </widget>
+    </widget>
+   </widget>
+   <widget class="QLabel" name="label_9">
+    <property name="geometry">
+     <rect>
+      <x>110</x>
+      <y>570</y>
+      <width>161</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Control Unit Memory Table</string>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1121</width>
+     <width>1212</width>
      <height>26</height>
     </rect>
    </property>

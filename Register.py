@@ -17,9 +17,9 @@ class Register:
 
     def to_binary(self):
         binary = bin(self.value)
-        if (self.value >= 0):
+        if self.value >= 0:
             binary = binary[2:]
-            if (len(binary) < self.length):
+            if len(binary) < self.length:
                 binary = (self.length - len(binary)) * '0' + binary
         else:
             binary = binary[3:]
