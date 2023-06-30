@@ -1,17 +1,20 @@
-from PyQt5.QtCore import pyqtSignal, QObject
+from PyQt5.QtCore import QObject
 
 from Memory import *
-from Register import *
+from Register import Register
 
 
 class ControlUnit(QObject):
-    compile_signal = pyqtSignal()
-
     def __init__(self):
         super().__init__()
         self.control_memory = Memory(128, 20)
         self.car = Register(7, 'CAR')
         self.sbr = Register(7, 'SBR')
+
+        self.ar = Register(11, 'AR')
+        self.pc = Register(11, 'PC')
+        self.dr = Register(16, 'DR')
+        self.ac = Register(16, 'AC')
 
         self.clock = 0
 
@@ -28,33 +31,130 @@ class ControlUnit(QObject):
 
         self.cd = {'U': '00', 'I': '01', 'S': '10', 'Z': '11'}
 
-        self.br = {'JMP': '00', 'CALL': '01', 'RET': '01', 'MAP': '11'}
+        self.br = {'JMP': '00', 'CALL': '01', 'RET': '10', 'MAP': '11'}
 
         self.table = {}
 
+    def run(self, command):
+        if command[:3] == '001':
+            self.ADD()
+        elif command[:3] == '010':
+            self.CLRAC()
+        elif command[:3] == '011':
+            self.INCAC()
+        elif command[:3] == '100':
+            self.DRTAC()
+        elif command[:3] == '101':
+            self.DRTAR()
+        elif command[:3] == '110':
+            self.PCTAR()
+        elif command[:3] == '111':
+            self.WRITE()
+        if command[3:6] == '001':
+            self.SUB()
+        elif command[3:6] == '010':
+            self.OR()
+        elif command[3:6] == '011':
+            self.AND()
+        elif command[3:6] == '100':
+            self.READ()
+        elif command[3:6] == '101':
+            self.ACTDR()
+        elif command[3:6] == '110':
+            self.INCDR()
+        elif command[3:6] == '111':
+            self.PCTDR()
+        if command[6:9] == '001':
+            self.XOR()
+        elif command[6:9] == '010':
+            self.COM()
+        elif command[6:9] == '011':
+            self.SHL()
+        elif command[6:9] == '100':
+            self.SHR()
+        elif command[6:9] == '101':
+            self.INCPC()
+        elif command[6:9] == '110':
+            self.ARTPC()
+
+        if command[9:11] == '00':
+            if command[11:13] == '00':
+                self.car.set(int(command[13:], 2))
+            elif command[11:13] == '01':
+                self.sbr.set(self.car.value + 1)
+                self.car.set(int(command[13:], 2))
+            elif command[11:13] == '10':
+                self.car.set(self.sbr.value)
+            elif command[11:13] == '11':
+                self.car.clear()
+                self.car.p_transform(1, 4, self.dr.binary[11:15])
+        elif command[9:11] == '01':
+            if self.dr.binary[15]:
+                if command[11:13] == '00':
+                    self.car.set(int(command[13:], 2))
+                elif command[11:13] == '01':
+                    self.sbr.set(self.car.value + 1)
+                    self.car.set(int(command[13:], 2))
+                elif command[11:13] == '10':
+                    self.car.set(self.sbr.value)
+                elif command[11:13] == '11':
+                    self.car.clear()
+                    self.car.p_transform(1, 4, self.dr.binary[11:15])
+            else:
+                self.car.set(self.car.value + 1)
+        elif command[9:11] == '10':
+            if self.ac.binary[15]:
+                if command[11:13] == '00':
+                    self.car.set(int(command[13:], 2))
+                elif command[11:13] == '01':
+                    self.sbr.set(self.car.value + 1)
+                    self.car.set(int(command[13:], 2))
+                elif command[11:13] == '10':
+                    self.car.set(self.sbr.value)
+                elif command[11:13] == '11':
+                    self.car.clear()
+                    self.car.p_transform(1, 4, self.dr.binary[11:15])
+            else:
+                self.car.set(self.car.value + 1)
+
+        elif command[9:11] == '11':
+            if self.ac.value == 0:
+                if command[11:13] == '00':
+                    self.car.set(int(command[13:], 2))
+                elif command[11:13] == '01':
+                    self.sbr.set(self.car.value + 1)
+                    self.car.set(int(command[13:], 2))
+                elif command[11:13] == '10':
+                    self.car.set(self.sbr.value)
+                elif command[11:13] == '11':
+                    self.car.clear()
+                    self.car.p_transform(1, 4, self.dr.binary[11:15])
+            else:
+                self.car.set(self.car.value + 1)
+
     def ADD(self):
-        ac.add(dr.value)
+        self.ac.add(self.dr.value)
 
     def CLRAC(self):
-        ac.clear()
+        self.ac.clear()
 
     def INCAC(self):
-        ac.add(1)
+        self.ac.add(1)
 
     def DRTAC(self):
-        ac.set(dr.value)
+        self.ac.set(self.dr.value)
 
     def DRTAR(self):
-        ar.p_transform(0, 10, dr.binary[5:16])
+        self.ar.p_transform(0, 10, self.dr.binary[5:16])
 
     def PCTAR(self):
-        ar.set(pc.value)
+        self.ar.set(self.pc.value)
 
     def WRITE(self):
-        Basic_Memory.write(ar.value, dr.value)
+        Basic_Memory.write(self.ar.value, self.dr.value)
 
     def SUB(self):
-        ac.add(-(dr.value))
+        self.ac.add(-self.dr.value)
 
     def OR(self):
         pass
@@ -63,16 +163,16 @@ class ControlUnit(QObject):
         pass
 
     def READ(self):
-        dr.set(Basic_Memory.read(ar.value))
+        self.dr.set(int(Basic_Memory.read(self.ar.value), 2))
 
     def ACTDR(self):
-        dr.set(ar.value)
+        self.dr.set(self.ar.value)
 
     def INCDR(self):
-        dr.add(1)
+        self.dr.add(1)
 
     def PCTDR(self):
-        dr.p_transform(0, 10, pc.value)
+        self.dr.p_transform(0, 10, self.pc.value)
 
     def XOR(self):
         pass
@@ -87,13 +187,23 @@ class ControlUnit(QObject):
         pass
 
     def INCPC(self):
-        pc.add(1)
+        self.pc.add(1)
 
     def ARTPC(self):
-        pc.set(ar.value)
+        self.pc.set(self.ar.value)
 
-    def check(self):
-        pass
+    def check(self, lines):
+        lc = 0
+        for line in lines:
+            if line[:3] == "ORG":
+                line.replace(' ', '')
+                lc = int(line[3:])
+                lc = lc - 1
+            elif ':' in line:
+                a = line.split(':')
+                self.table[a[0]] = lc
+
+            lc += 1
 
     def translate(self, micros, lc):
         ops = micros[1].split(',')
@@ -151,12 +261,14 @@ class ControlUnit(QObject):
         num = num + self.br[micros[3]]
         if micros[3] == 'MAP':
             num = num + '0000000'
+        elif micros[3] == "RET":
+            num = num + '0000000'
         elif micros[4] == "NEXT":
-            addr = bin(lc + 1)
-            num = num + addr[2:]
+            addr = format(lc + 1, '07b').replace(' ', '0')
+            num = num + addr
         else:
-            addr = self.table[micros[4]]
-            num = num + addr[2:]
+            addr = format(self.table[micros[4]], '07b').replace(' ', '0')
+            num = num + addr
 
         return num
 
@@ -193,6 +305,7 @@ class ControlUnit(QObject):
     def compile(self, lines):
         lc = 0
         flag = True
+        self.check(lines)
         if flag:
             for line in lines:
                 micros = line.split('\t')
@@ -213,10 +326,11 @@ class ControlUnit(QObject):
                 lc += 1
             if flag:
                 # self.compile_signal.emit("Success")
-                return True
+                return True, lc
             else:
                 # self.compile_signal.emit("Fail")
-                return False
+                return False, lc
+
 # control = Control_Unit
 # print(ar.value)
 # dr.set(56)
