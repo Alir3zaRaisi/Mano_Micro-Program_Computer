@@ -106,7 +106,6 @@ class AppMainWindow(QtWidgets.QMainWindow):
                 Basic_Memory.write(lc, int(value[4:], 16))
             else:
                 command = line.split('\t')
-                num = ''
                 if command[0] == 'I' or command[0] == 'i':
                     num = '1'
                     if self.c.table.get(command[1], 'Not Found') != 'Not Found':

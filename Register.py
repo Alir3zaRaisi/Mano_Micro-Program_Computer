@@ -5,7 +5,6 @@ class Register:
         self.value = value
         self.binary = ''
         self.to_binary()
-        # self.arr = list(map(lambda x: int(x), self.binary))
 
     def clear(self):
         self.value = 0
@@ -52,7 +51,3 @@ class Register:
         self.value = int(self.binary, 2)  # needs to handle negative values
 
 
-ar = Register(11, 'AR')
-pc = Register(11, 'PC')
-dr = Register(16, 'DR')
-ac = Register(16, 'AC')

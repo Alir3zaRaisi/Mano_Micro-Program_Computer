@@ -96,7 +96,7 @@
      </rect>
     </property>
    </widget>
-   <widget class="QTextBrowser" name="show_CBR">
+   <widget class="QTextBrowser" name="show_CAR">
     <property name="geometry">
      <rect>
       <x>60</x>
@@ -110,17 +110,7 @@
     <property name="geometry">
      <rect>
       <x>620</x>
-      <y>570</y>
-      <width>181</width>
-      <height>31</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QTextBrowser" name="show_PC">
-    <property name="geometry">
-     <rect>
-      <x>620</x>
-      <y>630</y>
+      <y>820</y>
       <width>181</width>
       <height>31</height>
      </rect>
@@ -129,8 +119,8 @@
    <widget class="QTextBrowser" name="show_DR">
     <property name="geometry">
      <rect>
-      <x>850</x>
-      <y>570</y>
+      <x>830</x>
+      <y>820</y>
       <width>181</width>
       <height>31</height>
      </rect>
@@ -139,8 +129,8 @@
    <widget class="QTextBrowser" name="show_AC">
     <property name="geometry">
      <rect>
-      <x>850</x>
-      <y>630</y>
+      <x>830</x>
+      <y>870</y>
       <width>181</width>
       <height>31</height>
      </rect>
@@ -169,14 +159,14 @@
      </rect>
     </property>
     <property name="text">
-     <string>CBR</string>
+     <string>CAR</string>
     </property>
    </widget>
    <widget class="QLabel" name="label_5">
     <property name="geometry">
      <rect>
-      <x>590</x>
-      <y>580</y>
+      <x>600</x>
+      <y>820</y>
       <width>55</width>
       <height>16</height>
      </rect>
@@ -188,8 +178,8 @@
    <widget class="QLabel" name="label_6">
     <property name="geometry">
      <rect>
-      <x>590</x>
-      <y>640</y>
+      <x>600</x>
+      <y>870</y>
       <width>55</width>
       <height>16</height>
      </rect>
@@ -201,8 +191,8 @@
    <widget class="QLabel" name="label_7">
     <property name="geometry">
      <rect>
-      <x>1050</x>
-      <y>580</y>
+      <x>1020</x>
+      <y>820</y>
       <width>55</width>
       <height>16</height>
      </rect>
@@ -214,8 +204,8 @@
    <widget class="QLabel" name="label_8">
     <property name="geometry">
      <rect>
-      <x>1050</x>
-      <y>640</y>
+      <x>1020</x>
+      <y>870</y>
       <width>55</width>
       <height>16</height>
      </rect>
@@ -227,8 +217,8 @@
    <widget class="QPushButton" name="Run">
     <property name="geometry">
      <rect>
-      <x>580</x>
-      <y>510</y>
+      <x>420</x>
+      <y>690</y>
       <width>93</width>
       <height>28</height>
      </rect>
@@ -312,7 +302,7 @@
    <widget class="QLabel" name="label_9">
     <property name="geometry">
      <rect>
-      <x>110</x>
+      <x>130</x>
       <y>570</y>
       <width>161</width>
       <height>20</height>
@@ -320,6 +310,88 @@
     </property>
     <property name="text">
      <string>Control Unit Memory Table</string>
+    </property>
+   </widget>
+   <widget class="QScrollArea" name="scrollArea_4">
+    <property name="geometry">
+     <rect>
+      <x>620</x>
+      <y>600</y>
+      <width>391</width>
+      <height>201</height>
+     </rect>
+    </property>
+    <property name="widgetResizable">
+     <bool>true</bool>
+    </property>
+    <widget class="QWidget" name="scrollAreaWidgetContents_4">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>0</y>
+       <width>389</width>
+       <height>199</height>
+      </rect>
+     </property>
+     <widget class="QTableView" name="basicMemoryTable">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>391</width>
+        <height>201</height>
+       </rect>
+      </property>
+     </widget>
+    </widget>
+   </widget>
+   <widget class="QLabel" name="label_10">
+    <property name="geometry">
+     <rect>
+      <x>750</x>
+      <y>570</y>
+      <width>131</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Basic Memory Table</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="BasicMemoryCompile">
+    <property name="geometry">
+     <rect>
+      <x>580</x>
+      <y>510</y>
+      <width>93</width>
+      <height>28</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Compile</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="pc">
+    <property name="geometry">
+     <rect>
+      <x>620</x>
+      <y>870</y>
+      <width>181</width>
+      <height>31</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="update_memory">
+    <property name="geometry">
+     <rect>
+      <x>690</x>
+      <y>510</y>
+      <width>93</width>
+      <height>28</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Update!</string>
     </property>
    </widget>
   </widget>
