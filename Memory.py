@@ -24,7 +24,6 @@ class Memory:
                 lc = lc - 1
             elif ':' in line:
                 operand = line.split(':')
-                value = 0
                 if operand[1][1:4] == "HEX":
                     value = int(operand[1][5:], 16)
                 elif operand[1][1:4] == "BIN":

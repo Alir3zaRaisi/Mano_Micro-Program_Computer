@@ -49,5 +49,3 @@ class Register:
         for i in arr:
             self.binary += str(i)
         self.value = int(self.binary, 2)  # needs to handle negative values
-
-

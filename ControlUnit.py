@@ -1,10 +1,13 @@
-from PyQt5.QtCore import QObject
+from PyQt5.QtCore import QObject, pyqtSignal
 
 from Memory import *
 from Register import Register
 
 
 class ControlUnit(QObject):
+
+    compile_signal = pyqtSignal(bool)
+
     def __init__(self):
         super().__init__()
         self.control_memory = Memory(128, 20)

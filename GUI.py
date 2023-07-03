@@ -32,11 +32,21 @@ class AppMainWindow(QtWidgets.QMainWindow):
         self.ui.basicMemoryTable.horizontalHeader().setDefaultSectionSize(200)
         self.ui.conterol_unit_tabl.horizontalHeader().setDefaultSectionSize(200)
         self.c = control_unit
+        self.c.compile_signal.connect(self.show_pop_up_compile)
         self.basic_memory = basic_memory
         self.ui.compile.clicked.connect(self.get_control_unit)
         self.ui.BasicMemoryCompile.clicked.connect(self.get_memory)
         self.ui.Run.clicked.connect(self.set_pc)
         self.ui.update_memory.clicked.connect(self.update)
+
+    @staticmethod
+    def show_pop_up_compile(compiled):
+        msg_box = QtWidgets.QMessageBox()
+        if compiled:
+            msg_box.setText("Success")
+        else:
+            msg_box.setText("Failed")
+        msg_box.exec_()
 
     def update(self):
         data = []
@@ -145,6 +155,7 @@ class AppMainWindow(QtWidgets.QMainWindow):
             lc += 1
         data = []
         print(flag)
+        self.c.compile_signal.emit(flag)
         if flag:
             for reg in self.basic_memory.registers:
                 data.append(['{:016b}'.format(reg.value)])
