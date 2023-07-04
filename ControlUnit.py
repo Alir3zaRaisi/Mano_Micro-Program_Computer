@@ -6,8 +6,6 @@ from Register import Register
 
 class ControlUnit(QObject):
 
-    compile_signal = pyqtSignal(bool)
-
     def __init__(self):
         super().__init__()
         self.control_memory = Memory(128, 20)
@@ -36,31 +34,31 @@ class ControlUnit(QObject):
 
         self.br = {'JMP': '00', 'CALL': '01', 'RET': '10', 'MAP': '11'}
 
-        self.table = {}
+        self.table = {}  # shows that where is each function
 
-    def run(self, command):
+    def run(self, command, basic_memory):
         if command[:3] == '001':
-            self.ADD()
+            self.add()
         elif command[:3] == '010':
-            self.CLRAC()
+            self.clrac()
         elif command[:3] == '011':
-            self.INCAC()
+            self.inc_ac()
         elif command[:3] == '100':
-            self.DRTAC()
+            self.dr_to_ac()
         elif command[:3] == '101':
-            self.DRTAR()
+            self.dr_to_ar()
         elif command[:3] == '110':
-            self.PCTAR()
+            self.pc_to_ar()
         elif command[:3] == '111':
-            self.WRITE()
+            self.write(basic_memory)
         if command[3:6] == '001':
-            self.SUB()
+            self.sub()
         elif command[3:6] == '010':
             self.OR()
         elif command[3:6] == '011':
             self.AND()
         elif command[3:6] == '100':
-            self.READ()
+            self.READ(basic_memory)
         elif command[3:6] == '101':
             self.ACTDR()
         elif command[3:6] == '110':
@@ -80,96 +78,108 @@ class ControlUnit(QObject):
         elif command[6:9] == '110':
             self.ARTPC()
 
-        if command[9:11] == '00':
-            if command[11:13] == '00':
+        if command[9:11] == '00':  # condition = U
+            if command[11:13] == '00':  # JMP
                 self.car.set(int(command[13:], 2))
-            elif command[11:13] == '01':
+            elif command[11:13] == '01':  # CALL
                 self.sbr.set(self.car.value + 1)
                 self.car.set(int(command[13:], 2))
-            elif command[11:13] == '10':
+            elif command[11:13] == '10':  # RET
                 self.car.set(self.sbr.value)
-            elif command[11:13] == '11':
+            elif command[11:13] == '11':  # MAP
                 self.car.clear()
-                self.car.p_transform(1, 4, self.dr.binary[11:15])
-        elif command[9:11] == '01':
-            if self.dr.binary[15]:
-                if command[11:13] == '00':
+                self.car.p_transform(1, 4, self.dr.binary[1:5])
+        elif command[9:11] == '01':  # condition = I
+            if self.dr.binary[0] == '1':
+                if command[11:13] == '00':  # JMP
                     self.car.set(int(command[13:], 2))
-                elif command[11:13] == '01':
+                elif command[11:13] == '01':  # CALL
                     self.sbr.set(self.car.value + 1)
                     self.car.set(int(command[13:], 2))
-                elif command[11:13] == '10':
+                elif command[11:13] == '10':  # RET
                     self.car.set(self.sbr.value)
-                elif command[11:13] == '11':
+                elif command[11:13] == '11':  # MAP
                     self.car.clear()
-                    self.car.p_transform(1, 4, self.dr.binary[11:15])
+                    self.car.p_transform(1, 4, self.dr.binary[1:5])
             else:
                 self.car.set(self.car.value + 1)
-        elif command[9:11] == '10':
-            if self.ac.binary[15]:
-                if command[11:13] == '00':
+        elif command[9:11] == '10':  # condition = S
+            if self.ac.binary[0] == '1':
+                if command[11:13] == '00':  # JMP
                     self.car.set(int(command[13:], 2))
-                elif command[11:13] == '01':
+                elif command[11:13] == '01':  # CALL
                     self.sbr.set(self.car.value + 1)
                     self.car.set(int(command[13:], 2))
-                elif command[11:13] == '10':
+                elif command[11:13] == '10':  # RET
                     self.car.set(self.sbr.value)
-                elif command[11:13] == '11':
+                elif command[11:13] == '11':  # MAP
                     self.car.clear()
-                    self.car.p_transform(1, 4, self.dr.binary[11:15])
+                    self.car.p_transform(1, 4, self.dr.binary[1:5])
             else:
                 self.car.set(self.car.value + 1)
 
-        elif command[9:11] == '11':
+        elif command[9:11] == '11':  # condition = Z
             if self.ac.value == 0:
-                if command[11:13] == '00':
+                if command[11:13] == '00':  # JMP
                     self.car.set(int(command[13:], 2))
-                elif command[11:13] == '01':
+                elif command[11:13] == '01':  # CALL
                     self.sbr.set(self.car.value + 1)
                     self.car.set(int(command[13:], 2))
-                elif command[11:13] == '10':
+                elif command[11:13] == '10':  # RET
                     self.car.set(self.sbr.value)
-                elif command[11:13] == '11':
+                elif command[11:13] == '11':  # MAP
                     self.car.clear()
-                    self.car.p_transform(1, 4, self.dr.binary[11:15])
+                    self.car.p_transform(1, 4, self.dr.binary[1:5])
             else:
                 self.car.set(self.car.value + 1)
 
-    def ADD(self):
+    def add(self):
         self.ac.add(self.dr.value)
 
-    def CLRAC(self):
+    def clrac(self):
         self.ac.clear()
 
-    def INCAC(self):
+    def inc_ac(self):
         self.ac.add(1)
 
-    def DRTAC(self):
+    def dr_to_ac(self):
         self.ac.set(self.dr.value)
 
-    def DRTAR(self):
+    def dr_to_ar(self):
         self.ar.p_transform(0, 10, self.dr.binary[5:16])
 
-    def PCTAR(self):
+    def pc_to_ar(self):
         self.ar.set(self.pc.value)
 
-    def WRITE(self):
-        Basic_Memory.write(self.ar.value, self.dr.value)
+    def write(self, basic_memory):
+        basic_memory.write(self.ar.value, self.dr.value)
 
-    def SUB(self):
+    def sub(self):
         self.ac.add(-self.dr.value)
 
     def OR(self):
-        pass
+        res = ''
+        for i in range(len(self.ac.binary)):
+            if self.ac.binary[i] == '1' or self.dr.binary[i] == '1':
+                res = res + '1'
+            else:
+                res = res + '0'
+        self.ac.set(int(res, 2))
 
     def AND(self):
-        pass
+        res = ''
+        for i in range(len(self.ac.binary)):
+            if self.ac.binary[i] == '1' and self.dr.binary[i] == '1':
+                res = res + '1'
+            else:
+                res = res + '0'
+        self.ac.set(int(res, 2))
 
-    def READ(self):
-        self.dr.set(int(Basic_Memory.read(self.ar.value), 2))
+    def READ(self, basic_memory):
+        self.dr.set(int(basic_memory.read(self.ar.value), 2))
 
     def ACTDR(self):
-        self.dr.set(self.ar.value)
+        self.dr.set(self.ac.value)
 
     def INCDR(self):
         self.dr.add(1)
@@ -178,10 +188,22 @@ class ControlUnit(QObject):
         self.dr.p_transform(0, 10, self.pc.value)
 
     def XOR(self):
+        res = ''
+        for i in range(len(self.ac.binary)):
+            if self.ac.binary[i] != self.dr.binary[i]:
+                res = res + '1'
+            else:
+                res = res + '0'
+        self.ac.set(int(res, 2))
+
         pass
 
     def COM(self):
-        pass
+        res = self.ac.binary
+        res = res.replace('0', '*')
+        res = res.replace('1', '0')
+        res = res.replace('*', '1')
+        self.ac.set(int(res, 2))
 
     def SHL(self):
         pass
@@ -195,7 +217,36 @@ class ControlUnit(QObject):
     def ARTPC(self):
         self.pc.set(self.ar.value)
 
-    def check(self, lines):
+    def compile(self, lines):  # compiles the control unit memory
+        lc = 0
+        flag = True
+        self.check(lines)
+        if flag:
+            for line in lines:
+                micros = line.split('\t')
+                num = ''
+                if micros[0][0:3] == 'ORG':
+                    micros[0].replace(' ', '')
+                    lc = int(micros[0][3:])
+                    lc -= 1
+                    print(lc)
+                elif micros[0] == '':
+                    flag = self.error(micros, lc)
+                elif micros[0][-1] == ':':
+                    self.table[micros[0][:-1]] = f'{lc}'
+                    flag = self.error(micros, lc)
+                if micros[0][0:3] != 'ORG':
+                    num = self.translate(micros, lc)
+                    self.control_memory.write(lc, int(num, 2))
+                lc += 1
+            if flag:
+                # self.compile_signal.emit("Success")
+                return True, lc
+            else:
+                # self.compile_signal.emit("Fail")
+                return False, lc
+
+    def check(self, lines):  # fills the table
         lc = 0
         for line in lines:
             if line[:3] == "ORG":
@@ -208,9 +259,8 @@ class ControlUnit(QObject):
 
             lc += 1
 
-    def translate(self, micros, lc):
+    def translate(self, micros, lc):  # translate the code into binary values
         ops = micros[1].split(',')
-        num = ''
         if len(ops) == 1:
             if ops[0] in self.f1:
                 num = self.f1[self.f1.index(ops[0]) + 1]
@@ -275,9 +325,9 @@ class ControlUnit(QObject):
 
         return num
 
-    def error(self, micros, lc):
+    def error(self, micros, lc):  # checks that the RTL is right
         flag = True
-        if micros[1][:3] != 'NOP' and flag:
+        if micros[1][:3] != 'NOP':
             ops = micros[1].split(',')
             # self.control_memory.write(lc)
             if len(ops) == 2:
@@ -304,39 +354,3 @@ class ControlUnit(QObject):
                         print(f'Compile Error in Line:{lc}')
                         flag = False
         return flag
-
-    def compile(self, lines):
-        lc = 0
-        flag = True
-        self.check(lines)
-        if flag:
-            for line in lines:
-                micros = line.split('\t')
-                num = ''
-                if micros[0][0:3] == 'ORG':
-                    micros[0].replace(' ', '')
-                    lc = int(micros[0][3:])
-                    lc -= 1
-                    print(lc)
-                elif micros[0] == '':
-                    flag = self.error(micros, lc)
-                elif micros[0][-1] == ':':
-                    self.table[micros[0][:-1]] = f'{lc}'
-                    flag = self.error(micros, lc)
-                if micros[0][0:3] != 'ORG':
-                    num = self.translate(micros, lc)
-                    self.control_memory.write(lc, int(num, 2))
-                lc += 1
-            if flag:
-                # self.compile_signal.emit("Success")
-                return True, lc
-            else:
-                # self.compile_signal.emit("Fail")
-                return False, lc
-
-# control = Control_Unit
-# print(ar.value)
-# dr.set(56)
-#
-# control.DRTAR(control)
-# print(ar.value)
