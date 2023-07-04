@@ -2,19 +2,19 @@ from Register import Register
 
 
 class Memory:
-    def __init__(self, length, bit):
+    def __init__(self, length, bit):  # Creates A memory with registers of given length and bits for words length
         self.registers = []
         for i in range(length):
             self.registers.append(Register(bit, f'{i}'))
         self.table = {}
 
-    def read(self, index):
+    def read(self, index):  # returns the value of the indexed register
         return self.registers[index].binary
 
-    def write(self, index, value):
+    def write(self, index, value):  # writes the value into the given register
         self.registers[index].set(value)
 
-    def lookup(self, lines):
+    def lookup(self, lines):  # fills the lookup table of the register with variables name and places
         lc = 0
         num = ["HEX", "DEC", "BIN"]
         for line in lines:
