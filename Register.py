@@ -15,24 +15,12 @@ class Register:
         self.to_binary()
 
     def to_binary(self):
-        binary = bin(self.value)
-        if self.value >= 0:
-            binary = binary[2:]
-            if len(binary) < self.length:
-                binary = (self.length - len(binary)) * '0' + binary
-        else:
-            binary = binary[3:]
-            res = ''
-            for i in range(len(binary)):
-                if binary[i] == '0':
-                    res += '1'
-                else:
-                    res += '0'
-            if len(res) != self.length:
-                res = '1' + res
-            binary = res
-            if len(binary) < self.length:
-                binary = (self.length - len(binary)) * '1' + binary
+        binary = format(self.value, f'0{self.length}b').replace(' ', '0')
+        if self.value < 0:
+            binary = binary[1:]
+            binary = binary.replace('1', '*')
+            binary = binary.replace('0', '1')
+            binary = binary.replace('*', '0')
         self.binary = binary
 
     def add(self, value_1):
