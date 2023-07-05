@@ -1,13 +1,10 @@
-from PyQt5.QtCore import QObject, pyqtSignal
-
 from Memory import *
 from Register import Register
 
 
-class ControlUnit(QObject):
+class ControlUnit:
 
     def __init__(self):
-        super().__init__()
         self.control_memory = Memory(128, 20)
         self.car = Register(7, 'CAR')
         self.sbr = Register(7, 'SBR')
@@ -35,48 +32,50 @@ class ControlUnit(QObject):
         self.br = {'JMP': '00', 'CALL': '01', 'RET': '10', 'MAP': '11'}
 
         self.table = {}  # shows that where is each function
+        self.line = {}  # to connect each command  in each line of the TextEdit
 
     def run(self, command, basic_memory):
-        if command[:3] == '001':
-            self.add()
-        elif command[:3] == '010':
-            self.clrac()
-        elif command[:3] == '011':
-            self.inc_ac()
-        elif command[:3] == '100':
-            self.dr_to_ac()
-        elif command[:3] == '101':
-            self.dr_to_ar()
-        elif command[:3] == '110':
-            self.pc_to_ar()
-        elif command[:3] == '111':
-            self.write(basic_memory)
-        if command[3:6] == '001':
-            self.sub()
-        elif command[3:6] == '010':
-            self.OR()
-        elif command[3:6] == '011':
-            self.AND()
-        elif command[3:6] == '100':
-            self.READ(basic_memory)
-        elif command[3:6] == '101':
-            self.ACTDR()
-        elif command[3:6] == '110':
-            self.INCDR()
-        elif command[3:6] == '111':
-            self.PCTDR()
-        if command[6:9] == '001':
-            self.XOR()
-        elif command[6:9] == '010':
-            self.COM()
-        elif command[6:9] == '011':
-            self.SHL()
-        elif command[6:9] == '100':
-            self.SHR()
-        elif command[6:9] == '101':
-            self.INCPC()
-        elif command[6:9] == '110':
-            self.ARTPC()
+        if command[:9] != "000000000":
+            if command[:3] == '001':
+                self.add()
+            elif command[:3] == '010':
+                self.clrac()
+            elif command[:3] == '011':
+                self.inc_ac()
+            elif command[:3] == '100':
+                self.dr_to_ac()
+            elif command[:3] == '101':
+                self.dr_to_ar()
+            elif command[:3] == '110':
+                self.pc_to_ar()
+            elif command[:3] == '111':
+                self.write(basic_memory)
+            if command[3:6] == '001':
+                self.sub()
+            elif command[3:6] == '010':
+                self.OR()
+            elif command[3:6] == '011':
+                self.AND()
+            elif command[3:6] == '100':
+                self.READ(basic_memory)
+            elif command[3:6] == '101':
+                self.ac_to_dr()
+            elif command[3:6] == '110':
+                self.inc_dr()
+            elif command[3:6] == '111':
+                self.pc_to_dr()
+            if command[6:9] == '001':
+                self.XOR()
+            elif command[6:9] == '010':
+                self.COM()
+            elif command[6:9] == '011':
+                self.SHL()
+            elif command[6:9] == '100':
+                self.SHR()
+            elif command[6:9] == '101':
+                self.INCPC()
+            elif command[6:9] == '110':
+                self.ARTPC()
 
         if command[9:11] == '00':  # condition = U
             if command[11:13] == '00':  # JMP
@@ -178,13 +177,13 @@ class ControlUnit(QObject):
     def READ(self, basic_memory):
         self.dr.set(int(basic_memory.read(self.ar.value), 2))
 
-    def ACTDR(self):
+    def ac_to_dr(self):
         self.dr.set(self.ac.value)
 
-    def INCDR(self):
+    def inc_dr(self):
         self.dr.add(1)
 
-    def PCTDR(self):
+    def pc_to_dr(self):
         self.dr.p_transform(0, 10, self.pc.value)
 
     def XOR(self):
@@ -224,12 +223,10 @@ class ControlUnit(QObject):
         if flag:
             for line in lines:
                 micros = line.split('\t')
-                num = ''
                 if micros[0][0:3] == 'ORG':
                     micros[0].replace(' ', '')
                     lc = int(micros[0][3:])
                     lc -= 1
-                    print(lc)
                 elif micros[0] == '':
                     flag = self.error(micros, lc)
                 elif micros[0][-1] == ':':
@@ -238,6 +235,7 @@ class ControlUnit(QObject):
                 if micros[0][0:3] != 'ORG':
                     num = self.translate(micros, lc)
                     self.control_memory.write(lc, int(num, 2))
+                    self.line[lc] = lines.index(line)
                 lc += 1
             if flag:
                 # self.compile_signal.emit("Success")
@@ -334,23 +332,23 @@ class ControlUnit(QObject):
                 if (ops[0] in self.f1 and ops[1] in self.f1) or (
                         ops[0] in self.f2 and ops[1] in self.f2) or (
                         ops[0] in self.f3 and ops[1] in self.f3):
-                    print(f'Compile Error in Line:{lc}')
+                    # print(f'Compile Error in Line:{lc}')
                     flag = False
                 if ops[0] in self.AC and ops[2] in self.AC:
-                    print(f'Compile Error in Line:{lc}')
+                    # print(f'Compile Error in Line:{lc}')
                     flag = False
 
             elif len(ops) == 3:
                 if ops[0] in self.f1:
                     if ops[1] in self.f1 or ops[2] in self.f1:
-                        print(f'Compile Error in Line:{lc}')
+                        # print(f'Compile Error in Line:{lc}')
                         flag = False
                 if ops[0] in self.f2:
                     if ops[1] in self.f2 or ops[2] in self.f2:
-                        print(f'Compile Error in Line:{lc}')
+                        # print(f'Compile Error in Line:{lc}')
                         flag = False
                 if ops[0] in self.f1:
                     if ops[1] in self.f3 or ops[2] in self.f3:
-                        print(f'Compile Error in Line:{lc}')
+                        # print(f'Compile Error in Line:{lc}')
                         flag = False
         return flag
