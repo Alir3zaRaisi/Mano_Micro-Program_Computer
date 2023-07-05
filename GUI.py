@@ -4,8 +4,6 @@ from PyQt5 import QtWidgets
 from PyQt5.QtCore import QAbstractTableModel, Qt, pyqtSignal, QObject, QCoreApplication, QTimer, QVariant
 from PyQt5.QtGui import QTextCursor, QColor
 
-from ControlUnit import ControlUnit
-from Memory import Memory
 from front import Ui_MainWindow
 
 
@@ -58,14 +56,12 @@ class AppMainWindow(QtWidgets.QMainWindow):
         self.ui.Run.clicked.connect(self.set_pc)
         self.last_high_lighted = 0
 
-    @staticmethod
-    def _show_pop_up_compile(res):
+    def _show_pop_up_compile(self, res):
         msg_box = QtWidgets.QMessageBox()
 
-        screen_geometry = ui.geometry()
         msg_box_size = msg_box.sizeHint()
-        x = (screen_geometry.width() - msg_box_size.width() - 80) // 2
-        y = (screen_geometry.height() - msg_box_size.height() - 20) // 2
+        x = (1212 - msg_box_size.width() - 80) // 2
+        y = (952 - msg_box_size.height() - 20) // 2
 
         msg_box.move(x, y)
 
@@ -180,15 +176,3 @@ class AppMainWindow(QtWidgets.QMainWindow):
         model = TableModel(data)
         self.ui.basicMemoryTable.setModel(model)
 
-
-if __name__ == "__main__":
-    import sys
-
-    my_emitter = MyEmitter()
-
-    app = QtWidgets.QApplication(sys.argv)
-    MainWindow = QtWidgets.QMainWindow()
-    ui = AppMainWindow(ControlUnit(), Memory(2048, 16), my_emitter)
-    ui.setWindowTitle("Mano Micro-Program Computer")
-    ui.show()
-    sys.exit(app.exec_())
