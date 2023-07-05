@@ -71,7 +71,7 @@ class Ui_MainWindow(object):
         self.label_8.setGeometry(QtCore.QRect(1020, 870, 55, 16))
         self.label_8.setObjectName("label_8")
         self.Run = QtWidgets.QPushButton(self.centralwidget)
-        self.Run.setGeometry(QtCore.QRect(420, 690, 93, 28))
+        self.Run.setGeometry(QtCore.QRect(360, 700, 221, 28))
         self.Run.setObjectName("Run")
         self.scrollArea_2 = QtWidgets.QScrollArea(self.centralwidget)
         self.scrollArea_2.setGeometry(QtCore.QRect(580, 40, 521, 461))
@@ -120,9 +120,12 @@ class Ui_MainWindow(object):
         self.pc = QtWidgets.QLineEdit(self.centralwidget)
         self.pc.setGeometry(QtCore.QRect(620, 870, 181, 31))
         self.pc.setObjectName("pc")
-        self.update_memory = QtWidgets.QPushButton(self.centralwidget)
-        self.update_memory.setGeometry(QtCore.QRect(690, 510, 93, 28))
-        self.update_memory.setObjectName("update_memory")
+        self.label_11 = QtWidgets.QLabel(self.centralwidget)
+        self.label_11.setGeometry(QtCore.QRect(360, 660, 91, 16))
+        self.label_11.setObjectName("label_11")
+        self.clock_rate = QtWidgets.QLineEdit(self.centralwidget)
+        self.clock_rate.setGeometry(QtCore.QRect(460, 660, 113, 22))
+        self.clock_rate.setObjectName("clock_rate")
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 1212, 26))
@@ -151,7 +154,7 @@ class Ui_MainWindow(object):
         self.label_9.setText(_translate("MainWindow", "Control Unit Memory Table"))
         self.label_10.setText(_translate("MainWindow", "Basic Memory Table"))
         self.BasicMemoryCompile.setText(_translate("MainWindow", "Compile"))
-        self.update_memory.setText(_translate("MainWindow", "Update!"))
+        self.label_11.setText(_translate("MainWindow", "Clock Rate(ms)"))
 
 
 if __name__ == "__main__":

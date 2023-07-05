@@ -1,9 +1,18 @@
+import time
+
 from PyQt5 import QtWidgets
-from PyQt5.QtCore import QAbstractTableModel, Qt
+from PyQt5.QtCore import QAbstractTableModel, Qt, pyqtSignal, QObject, QCoreApplication, QTimer, QVariant
+from PyQt5.QtGui import QTextCursor, QColor
 
 from ControlUnit import ControlUnit
-from Memory import Basic_Memory
+from Memory import Memory
 from front import Ui_MainWindow
+
+
+class MyEmitter(QObject):
+    control_unit_compile = pyqtSignal(tuple)
+    basic_memory_compile = pyqtSignal(tuple)
+    update_registers = pyqtSignal(bool)
 
 
 class TableModel(QAbstractTableModel):
@@ -21,31 +30,50 @@ class TableModel(QAbstractTableModel):
         if role == Qt.DisplayRole:
             return str(self.data[index.row()][index.column()])
 
-        return None
+    def headerData(self, section, orientation, role):
+        if role == Qt.DisplayRole:
+            if orientation == Qt.Horizontal:
+                return str(section)
+            elif orientation == Qt.Vertical:
+                return str(section)
+        return QVariant()
 
 
 class AppMainWindow(QtWidgets.QMainWindow):
-    def __init__(self, control_unit, basic_memory):
+    def __init__(self, control_unit, basic_memory, emitter):
         super().__init__()
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         self.ui.basicMemoryTable.horizontalHeader().setDefaultSectionSize(200)
         self.ui.conterol_unit_tabl.horizontalHeader().setDefaultSectionSize(200)
         self.c = control_unit
-        self.c.compile_signal.connect(self.show_pop_up_compile)
+        self.emitter = emitter
+        self.emitter.control_unit_compile.connect(self._show_pop_up_compile)
+        self.emitter.update_registers.connect(self.show_registers)
         self.basic_memory = basic_memory
+        self.ui.pc.setText('0')
+        self.ui.clock_rate.setText('500')
         self.ui.compile.clicked.connect(self.get_control_unit)
         self.ui.BasicMemoryCompile.clicked.connect(self.get_memory)
         self.ui.Run.clicked.connect(self.set_pc)
-        self.ui.update_memory.clicked.connect(self.update)
+        self.last_high_lighted = 0
 
     @staticmethod
-    def show_pop_up_compile(compiled):
+    def _show_pop_up_compile(res):
         msg_box = QtWidgets.QMessageBox()
-        if compiled:
-            msg_box.setText("Success")
+
+        screen_geometry = ui.geometry()
+        msg_box_size = msg_box.sizeHint()
+        x = (screen_geometry.width() - msg_box_size.width() - 80) // 2
+        y = (screen_geometry.height() - msg_box_size.height() - 20) // 2
+
+        msg_box.move(x, y)
+
+        msg_box.setWindowTitle("Compile")
+        if res:
+            msg_box.setText("Basic Memory Compiled Successfully")
         else:
-            msg_box.setText("Failed")
+            msg_box.setText(f"Compile Error in line{res[1]}")
         msg_box.exec_()
 
     def update(self):
@@ -59,28 +87,73 @@ class AppMainWindow(QtWidgets.QMainWindow):
     def set_pc(self):
         data = self.ui.pc.text()
         self.c.pc.set(int(data))
-        reg = self.basic_memory.registers[int(data)]
-        self.c.car.p_transform(1, 4, reg.binary[1:5])
-        self.c.dr.set(reg.value)
-        # self.c.ar.set(int(data))
+        clock = self.ui.clock_rate.text()
+        self.c.car.p_transform(1, 4, self.basic_memory.registers[int(data)].binary[1:5])
+        self.c.dr.set(self.basic_memory.registers[int(data)].value)
         self.c.ar.set(int(self.c.dr.binary[6:], 2))
         self.c.INCPC()
+        self.show_registers()
+        QCoreApplication.processEvents()
         while self.c.dr.value != 32767:
-            self.ui.show_CAR.setText(self.c.car.binary)
-            self.ui.show_AC.setText(self.c.ac.binary)
-            self.ui.show_AR.setText(self.c.ar.binary)
-            self.ui.show_DR.setText(self.c.dr.binary)
-            self.ui.show_SBR.setText(self.c.sbr.binary)
-            self.ui.pc.setText(self.c.pc.binary)
-            # time.sleep(1)
-            self.c.run(command=self.c.control_memory.registers[int(self.c.car.binary, 2)].binary)
+            self.c.run(command=self.c.control_memory.registers[int(self.c.car.binary, 2)].binary,
+                       basic_memory=self.basic_memory)
+            self.emitter.update_registers.emit(True)
+            QTimer.singleShot(int(clock), self.show_registers)
+            time.sleep(int(clock) / 1000)
+            QCoreApplication.processEvents()
+        self.update()
+
+    def show_registers(self):
+        self.ui.show_CAR.setText(self.c.car.binary)
+        self.ui.show_AC.setText(self.c.ac.binary)
+        self.ui.show_AR.setText(self.c.ar.binary)
+        self.ui.show_DR.setText(self.c.dr.binary)
+        self.ui.show_SBR.setText(self.c.sbr.binary)
+        self.ui.pc.setText(self.c.pc.binary)
+
+        self.highlight(self.ui.control_unit_input, self.last_high_lighted, QColor(Qt.white))
+        self.highlight(self.ui.control_unit_input, self.c.line[self.c.car.value], QColor(Qt.yellow))
+        if self.c.dr.value != 32767:
+            self.highlight(self.ui.Basic_Memory, self.basic_memory.memory_line[self.c.pc.value] - 2, QColor(Qt.white))
+            self.highlight(self.ui.Basic_Memory, self.basic_memory.memory_line[self.c.pc.value] - 1, QColor(Qt.red))
+        else:
+            self.highlight(self.ui.Basic_Memory, self.basic_memory.memory_line[self.c.pc.value - 1] - 1,
+                           QColor(Qt.white))
+            self.highlight(self.ui.Basic_Memory, self.basic_memory.memory_line[self.c.pc.value - 1], QColor(Qt.red))
+
+    def highlight(self, text_edit, line, color):
+
+        if text_edit == self.ui.control_unit_input:
+            self.last_high_lighted = line
+        # Get the cursor of the text edit
+        cursor = text_edit.textCursor()
+
+        # Move the cursor to the start of the line we want to highlight
+        cursor.movePosition(QTextCursor.Start)
+
+        # Move the cursor to the desired line
+        for _ in range(line):
+            cursor.movePosition(QTextCursor.Down)
+
+        # Get the current block format
+        format = cursor.blockFormat()
+
+        # Set the background color for the line
+        format.setBackground(color)
+
+        # Apply the modified block format
+        cursor.setBlockFormat(format)
+
+        # Set the new cursor and focus to the text edit
+        text_edit.setTextCursor(cursor)
+        text_edit.setFocus()
 
     def get_control_unit(self):
         text = self.ui.control_unit_input.toPlainText()
-        # self.ui.control_unit_input.appendPlainText("ALIREZA RAISI")
         lines = text.split('\n')
         res = self.c.compile(lines)
         if res[0]:
+            self.emitter.control_unit_compile.emit(res)
             data = []
             for reg in self.c.control_memory.registers:
                 data.append(['{:020b}'.format(reg.value)])
@@ -90,77 +163,20 @@ class AppMainWindow(QtWidgets.QMainWindow):
             data = [f'Compile Error in line:{res[1]}']
             model = TableModel(data)
             self.ui.conterol_unit_tabl.setModel(model)
-        print(text)
 
     def get_memory(self):
-        lc = 0
         text = self.ui.Basic_Memory.toPlainText()
-        flag = True
         lines = text.split('\n')
         self.basic_memory.lookup(lines)
-        for line in lines:
-            if not flag:
-                break
-            if line[:3] == "ORG":
-                line.replace(' ', '')
-                lc = int(line[3:])
-                lc = lc - 1
-            elif line[:3] == "HLT":
-                self.basic_memory.write(lc, 32767)  # HLT => 0 1111 1111111111
-                break
-            elif line[:3] == "DEC":
-                value = line.replace(" ", '')
-                Basic_Memory.write(lc, int(value[4:]))
-            elif line[:3] == "HEX":
-                value = line.replace(" ", '')
-                Basic_Memory.write(lc, int(value[4:], 16))
-            else:
-                command = line.split('\t')
-                if command[0] == 'I' or command[0] == 'i':
-                    num = '1'
-                    if self.c.table.get(command[1], 'Not Found') != 'Not Found':
-                        addr = self.c.table[command[1]]
-                        addr = format(int(addr), '04b').replace(' ', '0')
-                        if self.basic_memory.table.get(command[2], 'Not Found') != 'Not Found':
-                            num = num + addr + format(self.basic_memory.table[command[2]][0], '11b').replace(' ', '0')
-                        elif command[2][:3] == "HEX":
-                            num = num + addr + format(int(command[2][4:], 16), '11b').replace(' ', '0')
-                            # self.basic_memory.write(lc, int(num, 2))
-                        elif command[2][:3] == "BIN":
-                            num = num + addr + format(int(command[2][4:], 2), '11b').replace(' ', '0')
-                            # self.basic_memory.write(lc, int(num, 2))
-                        elif command[2][:3] == "DEC":
-                            num = num + addr + format(int(command[2][4:]), '11b').replace(' ', '0')
-                    else:
-                        flag = False
-                else:
-                    num = '0'
-                    if self.c.table.get(command[0], 'Not Found') != 'Not Found':
-                        addr = self.c.table[command[0]]
-                        addr = format(int(addr), '04b').replace(' ', '0')
-                        if self.basic_memory.table.get(command[1], 'Not Found') != 'Not Found':
-                            num = num + addr + format(self.basic_memory.table[command[1]][0], '11b').replace(' ', '0')
-                        elif command[1][:3] == "HEX":
-                            num = num + addr + format(int(command[1][3:], 16), '11b').replace(' ', '0')
-                            # self.basic_memory.write(lc, int(command[3], 16))
-                        elif command[1][:3] == "BIN":
-                            num = num + addr + format(int(command[1][3:], 2), '11b').replace(' ', '0')
-                            # self.basic_memory.write(lc, int(command[3], 2))
-                        elif command[1][:3] == "DEC":
-                            num = num + addr + format(int(command[1][3:]), '11b').replace(' ', '0')
-                        # self.basic_memory.write(lc, int(num, 2))
-                    else:
-                        flag = False
-                self.basic_memory.write(lc, int(num, 2))
-            lc += 1
+
+        res = self.basic_memory.compile(lines, 0, self.c.table)
+
         data = []
-        print(flag)
-        self.c.compile_signal.emit(flag)
-        if flag:
+        if res[0]:
             for reg in self.basic_memory.registers:
                 data.append(['{:016b}'.format(reg.value)])
         else:
-            data = [f'Compile Error in line:{lc}']
+            data = [f'Compile Error in line:{res[1]}']
         model = TableModel(data)
         self.ui.basicMemoryTable.setModel(model)
 
@@ -168,8 +184,11 @@ class AppMainWindow(QtWidgets.QMainWindow):
 if __name__ == "__main__":
     import sys
 
+    my_emitter = MyEmitter()
+
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()
-    ui = AppMainWindow(ControlUnit(), Basic_Memory)
+    ui = AppMainWindow(ControlUnit(), Memory(2048, 16), my_emitter)
+    ui.setWindowTitle("Mano Micro-Program Computer")
     ui.show()
     sys.exit(app.exec_())
